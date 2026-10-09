@@ -19,32 +19,35 @@ public class CrearPropuestaBorradorCommandHandler
         CancellationToken cancellationToken
     )
     {
-        // Usamos el factory method de la entidad Propuesta
         var propuesta = Propuesta.Crear(
             unidadId: command.UnidadId,
             tipoPropuestaId: command.TipoPropuestaId,
-            periodoLectivoId: command.PeriodoLectivoId,
             titulo: command.Titulo,
-            anio: command.Anio,
-            edicion: command.Edicion,
-            fechaInicio: command.FechaInicio,
-            fechaFin: command.FechaFin,
-            maximoAlumnos: command.MaximoAlumnos,
+            descripcion: null,
             cantidadHoras: command.CantidadHoras,
             usuarioId: command.UsuarioId,
-            modalidadId: command.ModalidadId,
-            estadoPropuestaId: command.EstadoPropuestaId,
-            importeBase: command.ImporteBase,
-            cuotas: command.Cuotas,
-            conceptoPago: command.ConceptoPago,
             emailEncargado: command.EmailEncargado,
             planEstudioPdf: command.PlanEstudioPdf,
             lugarRealizacion: command.LugarRealizacion,
             contactoInfo: command.ContactoInfo,
             pagosInfo: command.PagosInfo,
-            webVisible: command.WebVisible,
+            webVisible: command.WebVisible
+        );
+
+        var version = PropuestaVersion.Crear(
+            propuestaId: 0,
+            periodoLectivoId: command.PeriodoLectivoId,
+            modalidadId: command.ModalidadId,
+            fechaInicio: command.FechaInicio,
+            fechaFin: command.FechaFin,
+            maximoAlumnos: command.MaximoAlumnos,
+            importeBase: command.ImporteBase,
+            cuotas: command.Cuotas,
+            conceptoPago: command.ConceptoPago,
             permiteInscripcionesWeb: command.PermiteInscripcionesWeb
         );
+
+        propuesta.Versiones.Add(version);
 
         await _dbContext.Propuestas.AddAsync(propuesta, cancellationToken);
         await _dbContext.SaveChangesAsync(cancellationToken);

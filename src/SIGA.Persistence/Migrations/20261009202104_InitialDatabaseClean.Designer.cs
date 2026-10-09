@@ -12,8 +12,8 @@ using SIGA.Persistence;
 namespace SIGA.Persistence.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260325232200_InitialSchema")]
-    partial class InitialSchema
+    [Migration("20261009202104_InitialDatabaseClean")]
+    partial class InitialDatabaseClean
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -24,6 +24,109 @@ namespace SIGA.Persistence.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<int>", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ClaimType")
+                        .HasColumnType("text");
+
+                    b.Property<string>("ClaimValue")
+                        .HasColumnType("text");
+
+                    b.Property<int>("RoleId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RoleId");
+
+                    b.ToTable("roles_claims", "siga");
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<int>", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ClaimType")
+                        .HasColumnType("text");
+
+                    b.Property<string>("ClaimValue")
+                        .HasColumnType("text");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("usuarios_claims", "siga");
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<int>", b =>
+                {
+                    b.Property<string>("LoginProvider")
+                        .HasColumnType("text");
+
+                    b.Property<string>("ProviderKey")
+                        .HasColumnType("text");
+
+                    b.Property<string>("ProviderDisplayName")
+                        .HasColumnType("text");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("LoginProvider", "ProviderKey");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("usuarios_logins", "siga");
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<int>", b =>
+                {
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("RoleId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("UserId", "RoleId");
+
+                    b.HasIndex("RoleId");
+
+                    b.ToTable("usuarios_roles", "siga");
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<int>", b =>
+                {
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("LoginProvider")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Value")
+                        .HasColumnType("text");
+
+                    b.HasKey("UserId", "LoginProvider", "Name");
+
+                    b.ToTable("usuarios_tokens", "siga");
+                });
 
             modelBuilder.Entity("SIGA.Domain.Entities.Catalog.Dynamic.Modalidad", b =>
                 {
@@ -1964,10 +2067,10 @@ namespace SIGA.Persistence.Migrations
                         .HasColumnName("preinscripcion_id")
                         .HasComment("ID de la preinscripción que originó la inscripción (FK a preinscripciones.id).");
 
-                    b.Property<int>("PropuestaId")
+                    b.Property<int>("PropuestaVersionId")
                         .HasColumnType("integer")
-                        .HasColumnName("propuesta_id")
-                        .HasComment("ID de la propuesta académica (FK a propuestas.id).");
+                        .HasColumnName("propuesta_version_id")
+                        .HasComment("ID de la propuesta académica (FK a propuestas_versiones.id).");
 
                     b.Property<Guid>("Uuid")
                         .ValueGeneratedOnAdd()
@@ -2001,8 +2104,8 @@ namespace SIGA.Persistence.Migrations
                         .HasDatabaseName("ix_inscripciones_preinscripcion")
                         .HasFilter("preinscripcion_id IS NOT NULL");
 
-                    b.HasIndex("PropuestaId")
-                        .HasDatabaseName("ix_inscripciones_propuesta");
+                    b.HasIndex("PropuestaVersionId")
+                        .HasDatabaseName("ix_inscripciones_propuesta_version");
 
                     b.HasIndex("Uuid")
                         .IsUnique()
@@ -2011,16 +2114,16 @@ namespace SIGA.Persistence.Migrations
                     b.HasIndex("AlumnoId", "InscripcionEstadoId")
                         .HasDatabaseName("ix_inscripciones_alumno_estado");
 
-                    b.HasIndex("AlumnoId", "PropuestaId")
+                    b.HasIndex("AlumnoId", "PropuestaVersionId")
                         .IsUnique()
-                        .HasDatabaseName("uk_inscripciones_alumno_propuesta")
+                        .HasDatabaseName("uk_inscripciones_alumno_propuesta_version")
                         .HasFilter("inscripcion_estado_id = 1");
 
                     b.HasIndex("FechaInscripcion", "InscripcionEstadoId")
                         .HasDatabaseName("ix_inscripciones_fecha_estado");
 
-                    b.HasIndex("PropuestaId", "InscripcionEstadoId")
-                        .HasDatabaseName("ix_inscripciones_propuesta_estado");
+                    b.HasIndex("PropuestaVersionId", "InscripcionEstadoId")
+                        .HasDatabaseName("ix_inscripciones_propuesta_version_estado");
 
                     b.ToTable("inscripciones", "siga", t =>
                         {
@@ -2094,10 +2197,10 @@ namespace SIGA.Persistence.Migrations
                         .HasColumnName("observaciones")
                         .HasComment("Observaciones o motivo de revocación.");
 
-                    b.Property<int>("PropuestaId")
+                    b.Property<int>("PropuestaVersionId")
                         .HasColumnType("integer")
-                        .HasColumnName("propuesta_id")
-                        .HasComment("ID de la propuesta académica solicitada (FK a propuestas.id).");
+                        .HasColumnName("propuesta_version_id")
+                        .HasComment("ID de la propuesta académica solicitada (FK a propuestas_versiones.id).");
 
                     b.Property<string>("Telefono")
                         .HasMaxLength(20)
@@ -2140,8 +2243,8 @@ namespace SIGA.Persistence.Migrations
                     b.HasIndex("Nombre")
                         .HasDatabaseName("ix_preinscripciones_nombre");
 
-                    b.HasIndex("PropuestaId")
-                        .HasDatabaseName("ix_preinscripciones_propuesta");
+                    b.HasIndex("PropuestaVersionId")
+                        .HasDatabaseName("ix_preinscripciones_propuesta_version");
 
                     b.HasIndex("TipoDocumentoId")
                         .HasDatabaseName("ix_preinscripciones_tipo_documento");
@@ -2156,12 +2259,12 @@ namespace SIGA.Persistence.Migrations
                     b.HasIndex("EstadoPreinscripcionId", "CreadoEn")
                         .HasDatabaseName("ix_preinscripciones_estado_fecha");
 
-                    b.HasIndex("PropuestaId", "EstadoPreinscripcionId")
-                        .HasDatabaseName("ix_preinscripciones_propuesta_estado");
+                    b.HasIndex("PropuestaVersionId", "EstadoPreinscripcionId")
+                        .HasDatabaseName("ix_preinscripciones_propuesta_version_estado");
 
-                    b.HasIndex("TipoDocumentoId", "Documento", "PropuestaId")
+                    b.HasIndex("TipoDocumentoId", "Documento", "PropuestaVersionId")
                         .IsUnique()
-                        .HasDatabaseName("uk_preinscripciones_documento_propuesta")
+                        .HasDatabaseName("uk_preinscripciones_documento_propuesta_version")
                         .HasFilter("estado_preinscripcion_id IN (1, 2)");
 
                     b.ToTable("preinscripciones", "siga", t =>
@@ -2175,225 +2278,99 @@ namespace SIGA.Persistence.Migrations
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
-                        .HasColumnName("id")
-                        .HasComment("Identificador único de la propuesta.");
+                        .HasColumnName("id");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityAlwaysColumn(b.Property<int>("Id"));
 
                     b.Property<DateTime?>("ActualizadoEn")
                         .HasColumnType("timestamp with time zone")
-                        .HasColumnName("actualizado_en")
-                        .HasComment("Fecha y hora de la última actualización.");
-
-                    b.Property<int>("Anio")
-                        .HasColumnType("integer")
-                        .HasColumnName("anio")
-                        .HasComment("Año académico de la propuesta.");
+                        .HasColumnName("actualizado_en");
 
                     b.Property<int>("CantidadHoras")
                         .HasColumnType("integer")
-                        .HasColumnName("cantidad_horas")
-                        .HasComment("Carga horaria total de la propuesta.");
-
-                    b.Property<string>("ConceptoPago")
-                        .HasMaxLength(255)
-                        .HasColumnType("varchar(255)")
-                        .HasColumnName("concepto_pago")
-                        .HasComment("Concepto para pago / facturación.");
+                        .HasColumnName("cantidad_horas");
 
                     b.Property<string>("ContactoInfo")
                         .HasMaxLength(1000)
                         .HasColumnType("varchar(1000)")
-                        .HasColumnName("contacto_info")
-                        .HasComment("Información adicional de contacto.");
+                        .HasColumnName("contacto_info");
 
                     b.Property<DateTime?>("CreadoEn")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("creado_en")
-                        .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                        .HasComment("Fecha y hora de creación de la propuesta.");
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
-                    b.Property<int?>("Cuotas")
-                        .HasColumnType("integer")
-                        .HasColumnName("cuotas")
-                        .HasComment("Cantidad de cuotas (si aplica).");
-
-                    b.Property<int>("CuposDisponibles")
-                        .HasColumnType("integer")
-                        .HasColumnName("cupos_disponibles")
-                        .HasComment("Cupos disponibles actualmente.");
-
-                    b.Property<int?>("Edicion")
-                        .HasColumnType("integer")
-                        .HasColumnName("edicion")
-                        .HasComment("Número de edición (para cursos que se repiten).");
+                    b.Property<string>("Descripcion")
+                        .HasColumnType("text")
+                        .HasColumnName("descripcion");
 
                     b.Property<string>("EmailEncargado")
                         .HasMaxLength(255)
                         .HasColumnType("varchar(255)")
-                        .HasColumnName("email_encargado")
-                        .HasComment("Email del encargado o coordinador.");
+                        .HasColumnName("email_encargado");
 
                     b.Property<bool?>("Estado")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
                         .HasDefaultValue(true)
-                        .HasColumnName("estado")
-                        .HasComment("Indica si la propuesta está activa en el sistema.");
-
-                    b.Property<int>("EstadoPropuestaId")
-                        .HasColumnType("integer")
-                        .HasColumnName("estado_propuesta_id")
-                        .HasComment("ID del estado de la propuesta (FK a propuesta_estados.id).");
-
-                    b.Property<DateOnly>("FechaFin")
-                        .HasColumnType("date")
-                        .HasColumnName("fecha_fin")
-                        .HasComment("Fecha de finalización de la propuesta.");
-
-                    b.Property<DateOnly>("FechaInicio")
-                        .HasColumnType("date")
-                        .HasColumnName("fecha_inicio")
-                        .HasComment("Fecha de inicio de la propuesta.");
-
-                    b.Property<decimal?>("ImporteBase")
-                        .HasColumnType("decimal(18,2)")
-                        .HasColumnName("importe_base")
-                        .HasComment("Importe base o valor de la propuesta.");
+                        .HasColumnName("estado");
 
                     b.Property<string>("LugarRealizacion")
                         .HasMaxLength(500)
                         .HasColumnType("varchar(500)")
-                        .HasColumnName("lugar_realizacion")
-                        .HasComment("Lugar físico donde se realiza la propuesta.");
-
-                    b.Property<int>("MaximoAlumnos")
-                        .HasColumnType("integer")
-                        .HasColumnName("maximo_alumnos")
-                        .HasComment("Cupo máximo de alumnos permitidos.");
-
-                    b.Property<int>("ModalidadId")
-                        .HasColumnType("integer")
-                        .HasColumnName("modalidad_id")
-                        .HasComment("ID de la modalidad de cursado (FK a modalidades.id).");
+                        .HasColumnName("lugar_realizacion");
 
                     b.Property<string>("PagosInfo")
                         .HasMaxLength(1000)
                         .HasColumnType("varchar(1000)")
-                        .HasColumnName("pagos_info")
-                        .HasComment("Información sobre métodos de pago.");
-
-                    b.Property<int>("PeriodoLectivoId")
-                        .HasColumnType("integer")
-                        .HasColumnName("periodo_lectivo_id")
-                        .HasComment("ID del período lectivo (FK a periodos_lectivos.id).");
-
-                    b.Property<bool>("PermiteInscripcionesWeb")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
-                        .HasDefaultValue(false)
-                        .HasColumnName("permite_inscripciones_web")
-                        .HasComment("Indica si se permiten inscripciones a través de la web.");
+                        .HasColumnName("pagos_info");
 
                     b.Property<string>("PlanEstudioPdf")
                         .HasMaxLength(500)
                         .HasColumnType("varchar(500)")
-                        .HasColumnName("plan_estudio_pdf")
-                        .HasComment("URL o ruta del PDF del plan de estudio.");
+                        .HasColumnName("plan_estudio_pdf");
 
                     b.Property<int>("TipoPropuestaId")
                         .HasColumnType("integer")
-                        .HasColumnName("tipo_propuesta_id")
-                        .HasComment("ID del tipo de propuesta (FK a tipos_propuesta.id).");
+                        .HasColumnName("tipo_propuesta_id");
 
                     b.Property<string>("Titulo")
                         .IsRequired()
                         .HasMaxLength(500)
                         .HasColumnType("varchar(500)")
-                        .HasColumnName("titulo")
-                        .HasComment("Título completo de la propuesta académica.");
+                        .HasColumnName("titulo");
 
                     b.Property<int>("UnidadId")
                         .HasColumnType("integer")
-                        .HasColumnName("unidad_id")
-                        .HasComment("ID de la unidad académica (FK a unidades.id).");
+                        .HasColumnName("unidad_id");
 
                     b.Property<int>("UsuarioId")
                         .HasColumnType("integer")
-                        .HasColumnName("usuario_id")
-                        .HasComment("ID del usuario creador/responsable (FK a usuarios.id).");
+                        .HasColumnName("usuario_id");
 
                     b.Property<bool>("WebVisible")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
                         .HasDefaultValue(false)
-                        .HasColumnName("web_visible")
-                        .HasComment("Indica si la propuesta es visible en el sitio web.");
+                        .HasColumnName("web_visible");
+
+                    b.Property<Guid>("guid")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("uuid")
+                        .HasDefaultValueSql("gen_random_uuid()");
 
                     b.HasKey("Id")
                         .HasName("pk_propuesta");
 
-                    b.HasIndex("CuposDisponibles")
-                        .HasDatabaseName("ix_propuestas_cupos_disponibles");
+                    b.HasIndex("TipoPropuestaId");
 
-                    b.HasIndex("Estado")
-                        .HasDatabaseName("ix_propuestas_estado_sistema")
-                        .HasFilter("estado = true");
-
-                    b.HasIndex("EstadoPropuestaId")
-                        .HasDatabaseName("ix_propuestas_estado");
-
-                    b.HasIndex("FechaFin")
-                        .HasDatabaseName("ix_propuestas_fecha_fin");
-
-                    b.HasIndex("FechaInicio")
-                        .HasDatabaseName("ix_propuestas_fecha_inicio");
-
-                    b.HasIndex("ModalidadId")
-                        .HasDatabaseName("ix_propuestas_modalidad");
-
-                    b.HasIndex("PeriodoLectivoId")
-                        .HasDatabaseName("ix_propuestas_periodo");
-
-                    b.HasIndex("PermiteInscripcionesWeb")
-                        .HasDatabaseName("ix_propuestas_permite_inscripciones")
-                        .HasFilter("permite_inscripciones_web = true");
-
-                    b.HasIndex("TipoPropuestaId")
-                        .HasDatabaseName("ix_propuestas_tipo");
-
-                    b.HasIndex("Titulo")
-                        .HasDatabaseName("ix_propuestas_titulo");
-
-                    b.HasIndex("UnidadId")
-                        .HasDatabaseName("ix_propuestas_unidad");
-
-                    b.HasIndex("UsuarioId")
-                        .HasDatabaseName("ix_propuestas_usuario");
-
-                    b.HasIndex("WebVisible")
-                        .HasDatabaseName("ix_propuestas_web_visible")
-                        .HasFilter("web_visible = true");
-
-                    b.HasIndex("FechaInicio", "FechaFin")
-                        .HasDatabaseName("ix_propuestas_rango_fechas");
-
-                    b.HasIndex("ModalidadId", "EstadoPropuestaId")
-                        .HasDatabaseName("ix_propuestas_modalidad_estado");
-
-                    b.HasIndex("TipoPropuestaId", "Anio")
-                        .HasDatabaseName("ix_propuestas_tipo_anio");
-
-                    b.HasIndex("UnidadId", "PeriodoLectivoId")
-                        .HasDatabaseName("ix_propuestas_unidad_periodo");
-
-                    b.HasIndex("WebVisible", "PermiteInscripcionesWeb")
-                        .HasDatabaseName("ix_propuestas_web_flags");
+                    b.HasIndex("UnidadId");
 
                     b.ToTable("propuestas", "siga", t =>
                         {
-                            t.HasComment("Registro de propuestas académicas (carreras, cursos, talleres, etc.)");
+                            t.HasComment("Registro de propuestas académicas (catálogo)");
                         });
                 });
 
@@ -2417,10 +2394,10 @@ namespace SIGA.Persistence.Migrations
                         .HasColumnName("orden_web")
                         .HasComment("Orden de visualización del docente en la web (para ordenar por jerarquía).");
 
-                    b.Property<int>("PropuestaId")
+                    b.Property<int>("PropuestaVersionId")
                         .HasColumnType("integer")
-                        .HasColumnName("propuesta_id")
-                        .HasComment("ID de la propuesta académica (FK a propuestas.id).");
+                        .HasColumnName("propuesta_version_id")
+                        .HasComment("ID de la propuesta académica (FK a propuestas_versiones.id).");
 
                     b.Property<string>("Rol")
                         .IsRequired()
@@ -2435,19 +2412,127 @@ namespace SIGA.Persistence.Migrations
                     b.HasIndex("DocenteId")
                         .HasDatabaseName("ix_propuestas_docentes_docente");
 
-                    b.HasIndex("PropuestaId")
-                        .HasDatabaseName("ix_propuestas_docentes_propuesta");
+                    b.HasIndex("PropuestaVersionId")
+                        .HasDatabaseName("ix_propuestas_versiones_docentes_propuesta");
 
-                    b.HasIndex("PropuestaId", "DocenteId")
+                    b.HasIndex("PropuestaVersionId", "DocenteId")
                         .IsUnique()
-                        .HasDatabaseName("uk_propuestas_docentes_unique");
+                        .HasDatabaseName("uk_propuestas_versiones_docentes_unique");
 
-                    b.HasIndex("PropuestaId", "OrdenWeb")
-                        .HasDatabaseName("ix_propuestas_docentes_orden_web");
+                    b.HasIndex("PropuestaVersionId", "OrdenWeb")
+                        .HasDatabaseName("ix_propuestas_versiones_docentes_orden_web");
 
                     b.ToTable("propuestas_docentes", "siga", t =>
                         {
                             t.HasComment("Tabla intermedia que relaciona docentes con propuestas académicas");
+                        });
+                });
+
+            modelBuilder.Entity("SIGA.Domain.Entities.Core.PropuestaVersion", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityAlwaysColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime?>("ActualizadoEn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("actualizado_en");
+
+                    b.Property<string>("ConceptoPago")
+                        .HasMaxLength(255)
+                        .HasColumnType("varchar(255)")
+                        .HasColumnName("concepto_pago");
+
+                    b.Property<DateTime>("CreadoEn")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("creado_en")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.Property<int?>("Cuotas")
+                        .HasColumnType("integer")
+                        .HasColumnName("cuotas");
+
+                    b.Property<int>("CuposDisponibles")
+                        .HasColumnType("integer")
+                        .HasColumnName("cupos_disponibles");
+
+                    b.Property<int>("EstadoPropuestaId")
+                        .HasColumnType("integer")
+                        .HasColumnName("estado_propuesta_id");
+
+                    b.Property<DateOnly>("FechaFin")
+                        .HasColumnType("date")
+                        .HasColumnName("fecha_fin");
+
+                    b.Property<DateOnly>("FechaInicio")
+                        .HasColumnType("date")
+                        .HasColumnName("fecha_inicio");
+
+                    b.Property<decimal?>("ImporteBase")
+                        .HasColumnType("decimal(18,2)")
+                        .HasColumnName("importe_base");
+
+                    b.Property<int>("MaximoAlumnos")
+                        .HasColumnType("integer")
+                        .HasColumnName("maximo_alumnos");
+
+                    b.Property<int>("ModalidadId")
+                        .HasColumnType("integer")
+                        .HasColumnName("modalidad_id");
+
+                    b.Property<int?>("ModalidadId1")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("PeriodoLectivoId")
+                        .HasColumnType("integer")
+                        .HasColumnName("periodo_lectivo_id");
+
+                    b.Property<int?>("PeriodoLectivoId1")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("PermiteInscripcionesWeb")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("permite_inscripciones_web");
+
+                    b.Property<int?>("PropuestaEstadoId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("PropuestaId")
+                        .HasColumnType("integer")
+                        .HasColumnName("propuesta_id");
+
+                    b.Property<Guid>("Uuid")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("uuid")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.HasKey("Id")
+                        .HasName("pk_propuesta_version");
+
+                    b.HasIndex("EstadoPropuestaId");
+
+                    b.HasIndex("ModalidadId");
+
+                    b.HasIndex("ModalidadId1");
+
+                    b.HasIndex("PeriodoLectivoId");
+
+                    b.HasIndex("PeriodoLectivoId1");
+
+                    b.HasIndex("PropuestaEstadoId");
+
+                    b.HasIndex("PropuestaId");
+
+                    b.ToTable("propuestas_versiones", "siga", t =>
+                        {
+                            t.HasComment("Registro de cohortes o versiones de una propuesta académica");
                         });
                 });
 
@@ -2666,6 +2751,188 @@ namespace SIGA.Persistence.Migrations
                         });
                 });
 
+            modelBuilder.Entity("SIGA.Domain.Entities.Security.ApplicationRole", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ConcurrencyStamp")
+                        .IsConcurrencyToken()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Descripcion")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
+
+                    b.Property<string>("Name")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<string>("NormalizedName")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("NormalizedName")
+                        .IsUnique()
+                        .HasDatabaseName("RoleNameIndex");
+
+                    b.ToTable("roles", "siga");
+                });
+
+            modelBuilder.Entity("SIGA.Domain.Entities.Security.ApplicationUser", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AccessFailedCount")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("Activo")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true);
+
+                    b.Property<string>("Apellido")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("ConcurrencyStamp")
+                        .IsConcurrencyToken()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Email")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<bool>("EmailConfirmed")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("LockoutEnabled")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTimeOffset?>("LockoutEnd")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("NormalizedEmail")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<string>("NormalizedUserName")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<string>("PasswordHash")
+                        .HasColumnType("text");
+
+                    b.Property<string>("PhoneNumber")
+                        .HasColumnType("text");
+
+                    b.Property<bool>("PhoneNumberConfirmed")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("SecurityStamp")
+                        .HasColumnType("text");
+
+                    b.Property<bool>("TwoFactorEnabled")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("UserName")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("NormalizedEmail")
+                        .HasDatabaseName("EmailIndex");
+
+                    b.HasIndex("NormalizedUserName")
+                        .IsUnique()
+                        .HasDatabaseName("UserNameIndex");
+
+                    b.ToTable("usuarios", "siga");
+                });
+
+            modelBuilder.Entity("SIGA.Domain.Entities.Security.UsuarioUnidad", b =>
+                {
+                    b.Property<int>("UsuarioId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("UnidadId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("UsuarioId", "UnidadId");
+
+                    b.HasIndex("UnidadId");
+
+                    b.ToTable("usuarios_unidades", "siga");
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<int>", b =>
+                {
+                    b.HasOne("SIGA.Domain.Entities.Security.ApplicationRole", null)
+                        .WithMany()
+                        .HasForeignKey("RoleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<int>", b =>
+                {
+                    b.HasOne("SIGA.Domain.Entities.Security.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<int>", b =>
+                {
+                    b.HasOne("SIGA.Domain.Entities.Security.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<int>", b =>
+                {
+                    b.HasOne("SIGA.Domain.Entities.Security.ApplicationRole", null)
+                        .WithMany()
+                        .HasForeignKey("RoleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("SIGA.Domain.Entities.Security.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<int>", b =>
+                {
+                    b.HasOne("SIGA.Domain.Entities.Security.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("SIGA.Domain.Entities.Core.Alumno", b =>
                 {
                     b.HasOne("SIGA.Domain.Entities.Catalog.Static.AlumnoEstado", "AlumnoEstado")
@@ -2760,12 +3027,12 @@ namespace SIGA.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .HasConstraintName("fk_preinscripciones_inscripcion");
 
-                    b.HasOne("SIGA.Domain.Entities.Core.Propuesta", "Propuesta")
+                    b.HasOne("SIGA.Domain.Entities.Core.PropuestaVersion", "PropuestaVersion")
                         .WithMany("Inscripciones")
-                        .HasForeignKey("PropuestaId")
+                        .HasForeignKey("PropuestaVersionId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
-                        .HasConstraintName("fk_propuestas_inscripciones");
+                        .HasConstraintName("fk_propuestas_versiones_inscripciones");
 
                     b.Navigation("Alumno");
 
@@ -2773,7 +3040,7 @@ namespace SIGA.Persistence.Migrations
 
                     b.Navigation("Preinscripcion");
 
-                    b.Navigation("Propuesta");
+                    b.Navigation("PropuestaVersion");
                 });
 
             modelBuilder.Entity("SIGA.Domain.Entities.Core.Preinscripcion", b =>
@@ -2791,12 +3058,12 @@ namespace SIGA.Persistence.Migrations
                         .IsRequired()
                         .HasConstraintName("fk_estados_preinscripcion_preinscripciones");
 
-                    b.HasOne("SIGA.Domain.Entities.Core.Propuesta", "Propuesta")
+                    b.HasOne("SIGA.Domain.Entities.Core.PropuestaVersion", "PropuestaVersion")
                         .WithMany("Preinscripciones")
-                        .HasForeignKey("PropuestaId")
+                        .HasForeignKey("PropuestaVersionId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
-                        .HasConstraintName("fk_propuestas_preinscripciones");
+                        .HasConstraintName("fk_propuestas_versiones_preinscripciones");
 
                     b.HasOne("SIGA.Domain.Entities.Catalog.Static.TipoDocumento", "TipoDocumento")
                         .WithMany("Preinscripciones")
@@ -2809,34 +3076,13 @@ namespace SIGA.Persistence.Migrations
 
                     b.Navigation("PreinscripcionEstado");
 
-                    b.Navigation("Propuesta");
+                    b.Navigation("PropuestaVersion");
 
                     b.Navigation("TipoDocumento");
                 });
 
             modelBuilder.Entity("SIGA.Domain.Entities.Core.Propuesta", b =>
                 {
-                    b.HasOne("SIGA.Domain.Entities.Catalog.Static.PropuestaEstado", "PropuestaEstado")
-                        .WithMany("Propuestas")
-                        .HasForeignKey("EstadoPropuestaId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired()
-                        .HasConstraintName("fk_estados_propuesta_propuestas");
-
-                    b.HasOne("SIGA.Domain.Entities.Catalog.Dynamic.Modalidad", "Modalidad")
-                        .WithMany("Propuestas")
-                        .HasForeignKey("ModalidadId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired()
-                        .HasConstraintName("fk_propuestas_modalidad");
-
-                    b.HasOne("SIGA.Domain.Entities.Catalog.Dynamic.PeriodoLectivo", "PeriodoLectivo")
-                        .WithMany("Propuestas")
-                        .HasForeignKey("PeriodoLectivoId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired()
-                        .HasConstraintName("fk_propuestas_periodo");
-
                     b.HasOne("SIGA.Domain.Entities.Catalog.Dynamic.TipoPropuesta", "TipoPropuesta")
                         .WithMany("Propuestas")
                         .HasForeignKey("TipoPropuestaId")
@@ -2850,12 +3096,6 @@ namespace SIGA.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_unidades_propuestas");
-
-                    b.Navigation("Modalidad");
-
-                    b.Navigation("PeriodoLectivo");
-
-                    b.Navigation("PropuestaEstado");
 
                     b.Navigation("TipoPropuesta");
 
@@ -2871,16 +3111,67 @@ namespace SIGA.Persistence.Migrations
                         .IsRequired()
                         .HasConstraintName("fk_propuestas_docentes_docente");
 
-                    b.HasOne("SIGA.Domain.Entities.Core.Propuesta", "Propuesta")
+                    b.HasOne("SIGA.Domain.Entities.Core.PropuestaVersion", "PropuestaVersion")
                         .WithMany("PropuestaDocentes")
-                        .HasForeignKey("PropuestaId")
+                        .HasForeignKey("PropuestaVersionId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
-                        .HasConstraintName("fk_propuestas_docentes_propuesta");
+                        .HasConstraintName("fk_propuestas_versiones_docentes");
 
                     b.Navigation("Docente");
 
+                    b.Navigation("PropuestaVersion");
+                });
+
+            modelBuilder.Entity("SIGA.Domain.Entities.Core.PropuestaVersion", b =>
+                {
+                    b.HasOne("SIGA.Domain.Entities.Catalog.Static.PropuestaEstado", "PropuestaEstado")
+                        .WithMany()
+                        .HasForeignKey("EstadoPropuestaId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_propuestas_versiones_estado");
+
+                    b.HasOne("SIGA.Domain.Entities.Catalog.Dynamic.Modalidad", "Modalidad")
+                        .WithMany()
+                        .HasForeignKey("ModalidadId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_propuestas_versiones_modalidad");
+
+                    b.HasOne("SIGA.Domain.Entities.Catalog.Dynamic.Modalidad", null)
+                        .WithMany("Propuestas")
+                        .HasForeignKey("ModalidadId1");
+
+                    b.HasOne("SIGA.Domain.Entities.Catalog.Dynamic.PeriodoLectivo", "PeriodoLectivo")
+                        .WithMany()
+                        .HasForeignKey("PeriodoLectivoId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_propuestas_versiones_periodo");
+
+                    b.HasOne("SIGA.Domain.Entities.Catalog.Dynamic.PeriodoLectivo", null)
+                        .WithMany("Propuestas")
+                        .HasForeignKey("PeriodoLectivoId1");
+
+                    b.HasOne("SIGA.Domain.Entities.Catalog.Static.PropuestaEstado", null)
+                        .WithMany("Propuestas")
+                        .HasForeignKey("PropuestaEstadoId");
+
+                    b.HasOne("SIGA.Domain.Entities.Core.Propuesta", "Propuesta")
+                        .WithMany("Versiones")
+                        .HasForeignKey("PropuestaId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_propuestas_versiones_propuesta");
+
+                    b.Navigation("Modalidad");
+
+                    b.Navigation("PeriodoLectivo");
+
                     b.Navigation("Propuesta");
+
+                    b.Navigation("PropuestaEstado");
                 });
 
             modelBuilder.Entity("SIGA.Domain.Entities.Core.PropuestaWeb", b =>
@@ -2905,6 +3196,27 @@ namespace SIGA.Persistence.Migrations
                         .HasConstraintName("fk_temarios_propuesta");
 
                     b.Navigation("Propuesta");
+                });
+
+            modelBuilder.Entity("SIGA.Domain.Entities.Security.UsuarioUnidad", b =>
+                {
+                    b.HasOne("SIGA.Domain.Entities.Catalog.Dynamic.Unidad", "Unidad")
+                        .WithMany()
+                        .HasForeignKey("UnidadId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_usuarios_unidades_unidad");
+
+                    b.HasOne("SIGA.Domain.Entities.Security.ApplicationUser", "Usuario")
+                        .WithMany("UsuarioUnidades")
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_usuarios_unidades_usuario");
+
+                    b.Navigation("Unidad");
+
+                    b.Navigation("Usuario");
                 });
 
             modelBuilder.Entity("SIGA.Domain.Entities.Catalog.Dynamic.Modalidad", b =>
@@ -2990,15 +3302,25 @@ namespace SIGA.Persistence.Migrations
 
             modelBuilder.Entity("SIGA.Domain.Entities.Core.Propuesta", b =>
                 {
+                    b.Navigation("PropuestaContenidos");
+
+                    b.Navigation("PropuestaWeb");
+
+                    b.Navigation("Versiones");
+                });
+
+            modelBuilder.Entity("SIGA.Domain.Entities.Core.PropuestaVersion", b =>
+                {
                     b.Navigation("Inscripciones");
 
                     b.Navigation("Preinscripciones");
 
-                    b.Navigation("PropuestaContenidos");
-
                     b.Navigation("PropuestaDocentes");
+                });
 
-                    b.Navigation("PropuestaWeb");
+            modelBuilder.Entity("SIGA.Domain.Entities.Security.ApplicationUser", b =>
+                {
+                    b.Navigation("UsuarioUnidades");
                 });
 #pragma warning restore 612, 618
         }

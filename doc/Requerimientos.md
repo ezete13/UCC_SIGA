@@ -272,9 +272,4 @@ Para proteger la validez de los certificados ya emitidos o en proceso, se aplica
 * **Escenario:** Una propuesta pasa de **Publicada** a **Archivada** mientras un aspirante tiene abierta la página de inscripción.
 * **Acción:** El servicio web debe validar el estado de la propuesta en cada interacción. Al detectar el cambio a "Archivada", debe redirigir al usuario o mostrar un mensaje de "Propuesta no disponible", bloqueando el envío del formulario de preinscripción.
 
----
-
-¿Te gustaría que diseñemos un cuadro comparativo o un **Diagrama de Transición de Estados** para visualizar qué acciones están permitidas en cada etapa de la Propuesta?
-
-
 

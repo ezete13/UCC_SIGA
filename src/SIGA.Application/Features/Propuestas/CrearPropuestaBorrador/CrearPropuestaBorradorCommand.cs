@@ -10,8 +10,6 @@ public record CrearPropuestaBorradorCommand(
     int EstadoPropuestaId,
     int UsuarioId,
     string Titulo,
-    int Anio,
-    int? Edicion,
     DateOnly FechaInicio,
     DateOnly FechaFin,
     int MaximoAlumnos,

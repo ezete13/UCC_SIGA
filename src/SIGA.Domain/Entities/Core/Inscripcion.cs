@@ -1,4 +1,4 @@
-﻿using SIGA.Domain.Entities.Catalog.Static;
+using SIGA.Domain.Entities.Catalog.Static;
 using SIGA.Domain.Enums;
 using SIGA.Domain.Exceptions;
 
@@ -12,7 +12,7 @@ public class Inscripcion
 
     public required int AlumnoId { get; set; }
 
-    public required int PropuestaId { get; set; }
+    public required int PropuestaVersionId { get; set; }
 
     public required int InscripcionEstadoId { get; set; }
 
@@ -32,7 +32,7 @@ public class Inscripcion
 
     public virtual Alumno Alumno { get; set; } = null!;
 
-    public virtual Propuesta Propuesta { get; set; } = null!;
+    public virtual PropuestaVersion PropuestaVersion { get; set; } = null!;
 
     public virtual InscripcionEstado InscripcionEstado { get; set; } = null!;
 
@@ -53,7 +53,7 @@ public class Inscripcion
         {
             Uuid = Guid.NewGuid(),
             AlumnoId = alumnoId,
-            PropuestaId = preinscripcion.PropuestaId,
+            PropuestaVersionId = preinscripcion.PropuestaVersionId,
             PreinscripcionId = preinscripcion.Id,
             InscripcionEstadoId = (int)EstadoInscripcionEnum.Activa,
             FechaInscripcion = DateTime.UtcNow,

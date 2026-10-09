@@ -37,11 +37,11 @@ public class PropuestaDocenteConfiguration : IEntityTypeConfiguration<PropuestaD
 
         // Foreign Keys
         builder
-            .Property(e => e.PropuestaId)
-            .HasColumnName("propuesta_id")
+            .Property(e => e.PropuestaVersionId)
+            .HasColumnName("propuesta_version_id")
             .IsRequired()
             .HasColumnType("integer")
-            .HasComment("ID de la propuesta académica (FK a propuestas.id).");
+            .HasComment("ID de la propuesta académica (FK a propuestas_versiones.id).");
 
         builder
             .Property(e => e.DocenteId)
@@ -74,30 +74,30 @@ public class PropuestaDocenteConfiguration : IEntityTypeConfiguration<PropuestaD
     {
         // Índice único compuesto para evitar duplicados de docente en misma propuesta
         builder
-            .HasIndex(e => new { e.PropuestaId, e.DocenteId })
+            .HasIndex(e => new { e.PropuestaVersionId, e.DocenteId })
             .IsUnique()
-            .HasDatabaseName("uk_propuestas_docentes_unique");
+            .HasDatabaseName("uk_propuestas_versiones_docentes_unique");
 
         // Índices individuales para FK (mejoran performance de joins)
-        builder.HasIndex(e => e.PropuestaId).HasDatabaseName("ix_propuestas_docentes_propuesta");
+        builder.HasIndex(e => e.PropuestaVersionId).HasDatabaseName("ix_propuestas_versiones_docentes_propuesta");
 
         builder.HasIndex(e => e.DocenteId).HasDatabaseName("ix_propuestas_docentes_docente");
 
         // Índice para ordenamiento web
         builder
-            .HasIndex(e => new { e.PropuestaId, e.OrdenWeb })
-            .HasDatabaseName("ix_propuestas_docentes_orden_web");
+            .HasIndex(e => new { e.PropuestaVersionId, e.OrdenWeb })
+            .HasDatabaseName("ix_propuestas_versiones_docentes_orden_web");
     }
 
     private static void ConfigureRelationships(EntityTypeBuilder<PropuestaDocente> builder)
     {
-        // Relación con Propuesta
+        // Relación con PropuestaVersion
         builder
-            .HasOne(e => e.Propuesta)
+            .HasOne(e => e.PropuestaVersion)
             .WithMany(p => p.PropuestaDocentes)
-            .HasForeignKey(e => e.PropuestaId)
+            .HasForeignKey(e => e.PropuestaVersionId)
             .OnDelete(DeleteBehavior.Restrict)
-            .HasConstraintName("fk_propuestas_docentes_propuesta");
+            .HasConstraintName("fk_propuestas_versiones_docentes_propuesta");
 
         // Relación con Docente
         builder

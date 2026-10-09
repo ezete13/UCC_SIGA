@@ -1,12 +1,15 @@
-﻿using System.Reflection;
+using System.Reflection;
 using Microsoft.EntityFrameworkCore;
 using SIGA.Domain.Entities.Catalog.Dynamic;
 using SIGA.Domain.Entities.Catalog.Static;
 using SIGA.Domain.Entities.Core;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using SIGA.Domain.Entities.Security;
 
 namespace SIGA.Persistence;
 
-public partial class ApplicationDbContext : DbContext
+public partial class ApplicationDbContext : IdentityDbContext<ApplicationUser, ApplicationRole, int>
 {
     public ApplicationDbContext() { }
 
@@ -39,9 +42,22 @@ public partial class ApplicationDbContext : DbContext
     public virtual DbSet<PropuestaWeb> PropuestasWeb { get; set; }
     public virtual DbSet<Temario> Temarios { get; set; }
 
+    // Security
+    public virtual DbSet<UsuarioUnidad> UsuarioUnidades { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+        
+        // Identity tables schema and names
+        modelBuilder.Entity<ApplicationUser>().ToTable("usuarios", "siga");
+        modelBuilder.Entity<ApplicationRole>().ToTable("roles", "siga");
+        modelBuilder.Entity<IdentityUserRole<int>>().ToTable("usuarios_roles", "siga");
+        modelBuilder.Entity<IdentityUserClaim<int>>().ToTable("usuarios_claims", "siga");
+        modelBuilder.Entity<IdentityUserLogin<int>>().ToTable("usuarios_logins", "siga");
+        modelBuilder.Entity<IdentityRoleClaim<int>>().ToTable("roles_claims", "siga");
+        modelBuilder.Entity<IdentityUserToken<int>>().ToTable("usuarios_tokens", "siga");
+
         modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
         OnModelCreatingPartial(modelBuilder);
     }

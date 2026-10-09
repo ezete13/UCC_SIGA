@@ -9,7 +9,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace SIGA.Persistence.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class InitialDatabaseClean : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -171,6 +171,23 @@ namespace SIGA.Persistence.Migrations
                 comment: "Registro principal de estados de Propuestas");
 
             migrationBuilder.CreateTable(
+                name: "roles",
+                schema: "siga",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Descripcion = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
+                    Name = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
+                    NormalizedName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
+                    ConcurrencyStamp = table.Column<string>(type: "text", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_roles", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "tipos_documento",
                 schema: "siga",
                 columns: table => new
@@ -230,6 +247,59 @@ namespace SIGA.Persistence.Migrations
                     table.PrimaryKey("pk_unidad", x => x.id);
                 },
                 comment: "Unidades académicas y administrativas (sedes, facultades, escuelas, institutos)");
+
+            migrationBuilder.CreateTable(
+                name: "usuarios",
+                schema: "siga",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Nombre = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    Apellido = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    Activo = table.Column<bool>(type: "boolean", nullable: false, defaultValue: true),
+                    UserName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
+                    NormalizedUserName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
+                    Email = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
+                    NormalizedEmail = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
+                    EmailConfirmed = table.Column<bool>(type: "boolean", nullable: false),
+                    PasswordHash = table.Column<string>(type: "text", nullable: true),
+                    SecurityStamp = table.Column<string>(type: "text", nullable: true),
+                    ConcurrencyStamp = table.Column<string>(type: "text", nullable: true),
+                    PhoneNumber = table.Column<string>(type: "text", nullable: true),
+                    PhoneNumberConfirmed = table.Column<bool>(type: "boolean", nullable: false),
+                    TwoFactorEnabled = table.Column<bool>(type: "boolean", nullable: false),
+                    LockoutEnd = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
+                    LockoutEnabled = table.Column<bool>(type: "boolean", nullable: false),
+                    AccessFailedCount = table.Column<int>(type: "integer", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_usuarios", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "roles_claims",
+                schema: "siga",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    RoleId = table.Column<int>(type: "integer", nullable: false),
+                    ClaimType = table.Column<string>(type: "text", nullable: true),
+                    ClaimValue = table.Column<string>(type: "text", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_roles_claims", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_roles_claims_roles_RoleId",
+                        column: x => x.RoleId,
+                        principalSchema: "siga",
+                        principalTable: "roles",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
 
             migrationBuilder.CreateTable(
                 name: "alumnos",
@@ -325,60 +395,28 @@ namespace SIGA.Persistence.Migrations
                 schema: "siga",
                 columns: table => new
                 {
-                    id = table.Column<int>(type: "integer", nullable: false, comment: "Identificador único de la propuesta.")
+                    id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityAlwaysColumn),
-                    unidad_id = table.Column<int>(type: "integer", nullable: false, comment: "ID de la unidad académica (FK a unidades.id)."),
-                    modalidad_id = table.Column<int>(type: "integer", nullable: false, comment: "ID de la modalidad de cursado (FK a modalidades.id)."),
-                    tipo_propuesta_id = table.Column<int>(type: "integer", nullable: false, comment: "ID del tipo de propuesta (FK a tipos_propuesta.id)."),
-                    periodo_lectivo_id = table.Column<int>(type: "integer", nullable: false, comment: "ID del período lectivo (FK a periodos_lectivos.id)."),
-                    estado_propuesta_id = table.Column<int>(type: "integer", nullable: false, comment: "ID del estado de la propuesta (FK a propuesta_estados.id)."),
-                    usuario_id = table.Column<int>(type: "integer", nullable: false, comment: "ID del usuario creador/responsable (FK a usuarios.id)."),
-                    titulo = table.Column<string>(type: "varchar(500)", maxLength: 500, nullable: false, comment: "Título completo de la propuesta académica."),
-                    anio = table.Column<int>(type: "integer", nullable: false, comment: "Año académico de la propuesta."),
-                    edicion = table.Column<int>(type: "integer", nullable: true, comment: "Número de edición (para cursos que se repiten)."),
-                    fecha_inicio = table.Column<DateOnly>(type: "date", nullable: false, comment: "Fecha de inicio de la propuesta."),
-                    fecha_fin = table.Column<DateOnly>(type: "date", nullable: false, comment: "Fecha de finalización de la propuesta."),
-                    maximo_alumnos = table.Column<int>(type: "integer", nullable: false, comment: "Cupo máximo de alumnos permitidos."),
-                    cupos_disponibles = table.Column<int>(type: "integer", nullable: false, comment: "Cupos disponibles actualmente."),
-                    cantidad_horas = table.Column<int>(type: "integer", nullable: false, comment: "Carga horaria total de la propuesta."),
-                    importe_base = table.Column<decimal>(type: "numeric(18,2)", nullable: true, comment: "Importe base o valor de la propuesta."),
-                    cuotas = table.Column<int>(type: "integer", nullable: true, comment: "Cantidad de cuotas (si aplica)."),
-                    concepto_pago = table.Column<string>(type: "varchar(255)", maxLength: 255, nullable: true, comment: "Concepto para pago / facturación."),
-                    email_encargado = table.Column<string>(type: "varchar(255)", maxLength: 255, nullable: true, comment: "Email del encargado o coordinador."),
-                    plan_estudio_pdf = table.Column<string>(type: "varchar(500)", maxLength: 500, nullable: true, comment: "URL o ruta del PDF del plan de estudio."),
-                    lugar_realizacion = table.Column<string>(type: "varchar(500)", maxLength: 500, nullable: true, comment: "Lugar físico donde se realiza la propuesta."),
-                    estado = table.Column<bool>(type: "boolean", nullable: true, defaultValue: true, comment: "Indica si la propuesta está activa en el sistema."),
-                    contacto_info = table.Column<string>(type: "varchar(1000)", maxLength: 1000, nullable: true, comment: "Información adicional de contacto."),
-                    pagos_info = table.Column<string>(type: "varchar(1000)", maxLength: 1000, nullable: true, comment: "Información sobre métodos de pago."),
-                    web_visible = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false, comment: "Indica si la propuesta es visible en el sitio web."),
-                    permite_inscripciones_web = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false, comment: "Indica si se permiten inscripciones a través de la web."),
-                    creado_en = table.Column<DateTime>(type: "timestamp with time zone", nullable: true, defaultValueSql: "CURRENT_TIMESTAMP", comment: "Fecha y hora de creación de la propuesta."),
-                    actualizado_en = table.Column<DateTime>(type: "timestamp with time zone", nullable: true, comment: "Fecha y hora de la última actualización.")
+                    uuid = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
+                    unidad_id = table.Column<int>(type: "integer", nullable: false),
+                    tipo_propuesta_id = table.Column<int>(type: "integer", nullable: false),
+                    usuario_id = table.Column<int>(type: "integer", nullable: false),
+                    titulo = table.Column<string>(type: "varchar(500)", maxLength: 500, nullable: false),
+                    descripcion = table.Column<string>(type: "text", nullable: true),
+                    cantidad_horas = table.Column<int>(type: "integer", nullable: false),
+                    email_encargado = table.Column<string>(type: "varchar(255)", maxLength: 255, nullable: true),
+                    plan_estudio_pdf = table.Column<string>(type: "varchar(500)", maxLength: 500, nullable: true),
+                    lugar_realizacion = table.Column<string>(type: "varchar(500)", maxLength: 500, nullable: true),
+                    estado = table.Column<bool>(type: "boolean", nullable: true, defaultValue: true),
+                    contacto_info = table.Column<string>(type: "varchar(1000)", maxLength: 1000, nullable: true),
+                    pagos_info = table.Column<string>(type: "varchar(1000)", maxLength: 1000, nullable: true),
+                    web_visible = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false),
+                    creado_en = table.Column<DateTime>(type: "timestamp with time zone", nullable: true, defaultValueSql: "CURRENT_TIMESTAMP"),
+                    actualizado_en = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("pk_propuesta", x => x.id);
-                    table.ForeignKey(
-                        name: "fk_estados_propuesta_propuestas",
-                        column: x => x.estado_propuesta_id,
-                        principalSchema: "siga",
-                        principalTable: "propuesta_estados",
-                        principalColumn: "id",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "fk_propuestas_modalidad",
-                        column: x => x.modalidad_id,
-                        principalSchema: "siga",
-                        principalTable: "modalidades",
-                        principalColumn: "id",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "fk_propuestas_periodo",
-                        column: x => x.periodo_lectivo_id,
-                        principalSchema: "siga",
-                        principalTable: "periodos_lectivos",
-                        principalColumn: "id",
-                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "fk_tipos_propuesta_propuestas",
                         column: x => x.tipo_propuesta_id,
@@ -394,94 +432,206 @@ namespace SIGA.Persistence.Migrations
                         principalColumn: "id",
                         onDelete: ReferentialAction.Restrict);
                 },
-                comment: "Registro de propuestas académicas (carreras, cursos, talleres, etc.)");
+                comment: "Registro de propuestas académicas (catálogo)");
 
             migrationBuilder.CreateTable(
-                name: "preinscripciones",
+                name: "usuarios_claims",
                 schema: "siga",
                 columns: table => new
                 {
-                    id = table.Column<int>(type: "integer", nullable: false, comment: "Identificador único de la preinscripción.")
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityAlwaysColumn),
-                    uuid = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()", comment: "UUID único para identificación universal de la preinscripción."),
-                    alumno_id = table.Column<int>(type: "integer", nullable: true, comment: "ID del alumno generado al aprobar la preinscripción (FK a alumnos.id)."),
-                    propuesta_id = table.Column<int>(type: "integer", nullable: false, comment: "ID de la propuesta académica solicitada (FK a propuestas.id)."),
-                    estado_preinscripcion_id = table.Column<int>(type: "integer", nullable: false, comment: "ID del estado de la preinscripción (FK a preinscripcion_estados.id)."),
-                    tipo_documento_id = table.Column<int>(type: "integer", nullable: false, comment: "ID del tipo de documento (FK a tipos_documento.id)."),
-                    documento = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: false, comment: "Número de documento del preinscripto."),
-                    apellido = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: false, comment: "Apellido(s) del preinscripto."),
-                    nombre = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: false, comment: "Nombre(s) del preinscripto."),
-                    email = table.Column<string>(type: "varchar(255)", maxLength: 255, nullable: false, comment: "Correo electrónico del preinscripto."),
-                    telefono = table.Column<string>(type: "varchar(20)", maxLength: 20, nullable: true, comment: "Número de teléfono de contacto."),
-                    observaciones = table.Column<string>(type: "varchar(1000)", maxLength: 1000, nullable: true, comment: "Observaciones o motivo de revocación."),
-                    creado_en = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP", comment: "Fecha y hora de creación de la preinscripción."),
-                    actualizado_en = table.Column<DateTime>(type: "timestamp with time zone", nullable: true, comment: "Fecha y hora de la última actualización.")
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    UserId = table.Column<int>(type: "integer", nullable: false),
+                    ClaimType = table.Column<string>(type: "text", nullable: true),
+                    ClaimValue = table.Column<string>(type: "text", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("pk_preinscripcion", x => x.id);
+                    table.PrimaryKey("PK_usuarios_claims", x => x.Id);
                     table.ForeignKey(
-                        name: "fk_estados_preinscripcion_preinscripciones",
-                        column: x => x.estado_preinscripcion_id,
+                        name: "FK_usuarios_claims_usuarios_UserId",
+                        column: x => x.UserId,
                         principalSchema: "siga",
-                        principalTable: "preinscripcion_estados",
+                        principalTable: "usuarios",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "usuarios_logins",
+                schema: "siga",
+                columns: table => new
+                {
+                    LoginProvider = table.Column<string>(type: "text", nullable: false),
+                    ProviderKey = table.Column<string>(type: "text", nullable: false),
+                    ProviderDisplayName = table.Column<string>(type: "text", nullable: true),
+                    UserId = table.Column<int>(type: "integer", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_usuarios_logins", x => new { x.LoginProvider, x.ProviderKey });
+                    table.ForeignKey(
+                        name: "FK_usuarios_logins_usuarios_UserId",
+                        column: x => x.UserId,
+                        principalSchema: "siga",
+                        principalTable: "usuarios",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "usuarios_roles",
+                schema: "siga",
+                columns: table => new
+                {
+                    UserId = table.Column<int>(type: "integer", nullable: false),
+                    RoleId = table.Column<int>(type: "integer", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_usuarios_roles", x => new { x.UserId, x.RoleId });
+                    table.ForeignKey(
+                        name: "FK_usuarios_roles_roles_RoleId",
+                        column: x => x.RoleId,
+                        principalSchema: "siga",
+                        principalTable: "roles",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_usuarios_roles_usuarios_UserId",
+                        column: x => x.UserId,
+                        principalSchema: "siga",
+                        principalTable: "usuarios",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "usuarios_tokens",
+                schema: "siga",
+                columns: table => new
+                {
+                    UserId = table.Column<int>(type: "integer", nullable: false),
+                    LoginProvider = table.Column<string>(type: "text", nullable: false),
+                    Name = table.Column<string>(type: "text", nullable: false),
+                    Value = table.Column<string>(type: "text", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_usuarios_tokens", x => new { x.UserId, x.LoginProvider, x.Name });
+                    table.ForeignKey(
+                        name: "FK_usuarios_tokens_usuarios_UserId",
+                        column: x => x.UserId,
+                        principalSchema: "siga",
+                        principalTable: "usuarios",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "usuarios_unidades",
+                schema: "siga",
+                columns: table => new
+                {
+                    UsuarioId = table.Column<int>(type: "integer", nullable: false),
+                    UnidadId = table.Column<int>(type: "integer", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_usuarios_unidades", x => new { x.UsuarioId, x.UnidadId });
+                    table.ForeignKey(
+                        name: "fk_usuarios_unidades_unidad",
+                        column: x => x.UnidadId,
+                        principalSchema: "siga",
+                        principalTable: "unidades",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "fk_usuarios_unidades_usuario",
+                        column: x => x.UsuarioId,
+                        principalSchema: "siga",
+                        principalTable: "usuarios",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "propuestas_versiones",
+                schema: "siga",
+                columns: table => new
+                {
+                    id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityAlwaysColumn),
+                    uuid = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
+                    propuesta_id = table.Column<int>(type: "integer", nullable: false),
+                    periodo_lectivo_id = table.Column<int>(type: "integer", nullable: false),
+                    modalidad_id = table.Column<int>(type: "integer", nullable: false),
+                    estado_propuesta_id = table.Column<int>(type: "integer", nullable: false),
+                    fecha_inicio = table.Column<DateOnly>(type: "date", nullable: false),
+                    fecha_fin = table.Column<DateOnly>(type: "date", nullable: false),
+                    maximo_alumnos = table.Column<int>(type: "integer", nullable: false),
+                    cupos_disponibles = table.Column<int>(type: "integer", nullable: false),
+                    importe_base = table.Column<decimal>(type: "numeric(18,2)", nullable: true),
+                    cuotas = table.Column<int>(type: "integer", nullable: true),
+                    concepto_pago = table.Column<string>(type: "varchar(255)", maxLength: 255, nullable: true),
+                    permite_inscripciones_web = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false),
+                    creado_en = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP"),
+                    actualizado_en = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    ModalidadId1 = table.Column<int>(type: "integer", nullable: true),
+                    PeriodoLectivoId1 = table.Column<int>(type: "integer", nullable: true),
+                    PropuestaEstadoId = table.Column<int>(type: "integer", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("pk_propuesta_version", x => x.id);
+                    table.ForeignKey(
+                        name: "FK_propuestas_versiones_modalidades_ModalidadId1",
+                        column: x => x.ModalidadId1,
+                        principalSchema: "siga",
+                        principalTable: "modalidades",
+                        principalColumn: "id");
+                    table.ForeignKey(
+                        name: "FK_propuestas_versiones_periodos_lectivos_PeriodoLectivoId1",
+                        column: x => x.PeriodoLectivoId1,
+                        principalSchema: "siga",
+                        principalTable: "periodos_lectivos",
+                        principalColumn: "id");
+                    table.ForeignKey(
+                        name: "FK_propuestas_versiones_propuesta_estados_PropuestaEstadoId",
+                        column: x => x.PropuestaEstadoId,
+                        principalSchema: "siga",
+                        principalTable: "propuesta_estados",
+                        principalColumn: "id");
+                    table.ForeignKey(
+                        name: "fk_propuestas_versiones_estado",
+                        column: x => x.estado_propuesta_id,
+                        principalSchema: "siga",
+                        principalTable: "propuesta_estados",
                         principalColumn: "id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "fk_preinscripciones_alumno",
-                        column: x => x.alumno_id,
+                        name: "fk_propuestas_versiones_modalidad",
+                        column: x => x.modalidad_id,
                         principalSchema: "siga",
-                        principalTable: "alumnos",
+                        principalTable: "modalidades",
                         principalColumn: "id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "fk_propuestas_preinscripciones",
+                        name: "fk_propuestas_versiones_periodo",
+                        column: x => x.periodo_lectivo_id,
+                        principalSchema: "siga",
+                        principalTable: "periodos_lectivos",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "fk_propuestas_versiones_propuesta",
                         column: x => x.propuesta_id,
                         principalSchema: "siga",
                         principalTable: "propuestas",
                         principalColumn: "id",
                         onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "fk_tipos_documento_preinscripciones",
-                        column: x => x.tipo_documento_id,
-                        principalSchema: "siga",
-                        principalTable: "tipos_documento",
-                        principalColumn: "id",
-                        onDelete: ReferentialAction.Restrict);
                 },
-                comment: "Registro de preinscripciones de interesados a propuestas académicas");
-
-            migrationBuilder.CreateTable(
-                name: "propuestas_docentes",
-                schema: "siga",
-                columns: table => new
-                {
-                    id = table.Column<int>(type: "integer", nullable: false, comment: "Identificador único de la relación propuesta-docente.")
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityAlwaysColumn),
-                    propuesta_id = table.Column<int>(type: "integer", nullable: false, comment: "ID de la propuesta académica (FK a propuestas.id)."),
-                    docente_id = table.Column<int>(type: "integer", nullable: false, comment: "ID del docente (FK a docentes.id)."),
-                    rol = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: false, comment: "Rol del docente en la propuesta (Titular, Adjunto, Asistente, Invitado, etc.)."),
-                    orden_web = table.Column<int>(type: "integer", nullable: true, comment: "Orden de visualización del docente en la web (para ordenar por jerarquía).")
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("pk_propuesta_docente", x => x.id);
-                    table.ForeignKey(
-                        name: "fk_propuestas_docentes_docente",
-                        column: x => x.docente_id,
-                        principalSchema: "siga",
-                        principalTable: "docentes",
-                        principalColumn: "id",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "fk_propuestas_docentes_propuesta",
-                        column: x => x.propuesta_id,
-                        principalSchema: "siga",
-                        principalTable: "propuestas",
-                        principalColumn: "id",
-                        onDelete: ReferentialAction.Restrict);
-                },
-                comment: "Tabla intermedia que relaciona docentes con propuestas académicas");
+                comment: "Registro de cohortes o versiones de una propuesta académica");
 
             migrationBuilder.CreateTable(
                 name: "propuestas_web",
@@ -550,6 +700,93 @@ namespace SIGA.Persistence.Migrations
                 comment: "Módulos y contenidos temáticos de las propuestas académicas");
 
             migrationBuilder.CreateTable(
+                name: "preinscripciones",
+                schema: "siga",
+                columns: table => new
+                {
+                    id = table.Column<int>(type: "integer", nullable: false, comment: "Identificador único de la preinscripción.")
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityAlwaysColumn),
+                    uuid = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()", comment: "UUID único para identificación universal de la preinscripción."),
+                    alumno_id = table.Column<int>(type: "integer", nullable: true, comment: "ID del alumno generado al aprobar la preinscripción (FK a alumnos.id)."),
+                    propuesta_version_id = table.Column<int>(type: "integer", nullable: false, comment: "ID de la propuesta académica solicitada (FK a propuestas_versiones.id)."),
+                    estado_preinscripcion_id = table.Column<int>(type: "integer", nullable: false, comment: "ID del estado de la preinscripción (FK a preinscripcion_estados.id)."),
+                    tipo_documento_id = table.Column<int>(type: "integer", nullable: false, comment: "ID del tipo de documento (FK a tipos_documento.id)."),
+                    documento = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: false, comment: "Número de documento del preinscripto."),
+                    apellido = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: false, comment: "Apellido(s) del preinscripto."),
+                    nombre = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: false, comment: "Nombre(s) del preinscripto."),
+                    email = table.Column<string>(type: "varchar(255)", maxLength: 255, nullable: false, comment: "Correo electrónico del preinscripto."),
+                    telefono = table.Column<string>(type: "varchar(20)", maxLength: 20, nullable: true, comment: "Número de teléfono de contacto."),
+                    observaciones = table.Column<string>(type: "varchar(1000)", maxLength: 1000, nullable: true, comment: "Observaciones o motivo de revocación."),
+                    creado_en = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP", comment: "Fecha y hora de creación de la preinscripción."),
+                    actualizado_en = table.Column<DateTime>(type: "timestamp with time zone", nullable: true, comment: "Fecha y hora de la última actualización.")
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("pk_preinscripcion", x => x.id);
+                    table.ForeignKey(
+                        name: "fk_estados_preinscripcion_preinscripciones",
+                        column: x => x.estado_preinscripcion_id,
+                        principalSchema: "siga",
+                        principalTable: "preinscripcion_estados",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "fk_preinscripciones_alumno",
+                        column: x => x.alumno_id,
+                        principalSchema: "siga",
+                        principalTable: "alumnos",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "fk_propuestas_versiones_preinscripciones",
+                        column: x => x.propuesta_version_id,
+                        principalSchema: "siga",
+                        principalTable: "propuestas_versiones",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "fk_tipos_documento_preinscripciones",
+                        column: x => x.tipo_documento_id,
+                        principalSchema: "siga",
+                        principalTable: "tipos_documento",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Restrict);
+                },
+                comment: "Registro de preinscripciones de interesados a propuestas académicas");
+
+            migrationBuilder.CreateTable(
+                name: "propuestas_docentes",
+                schema: "siga",
+                columns: table => new
+                {
+                    id = table.Column<int>(type: "integer", nullable: false, comment: "Identificador único de la relación propuesta-docente.")
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityAlwaysColumn),
+                    propuesta_version_id = table.Column<int>(type: "integer", nullable: false, comment: "ID de la propuesta académica (FK a propuestas_versiones.id)."),
+                    docente_id = table.Column<int>(type: "integer", nullable: false, comment: "ID del docente (FK a docentes.id)."),
+                    rol = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: false, comment: "Rol del docente en la propuesta (Titular, Adjunto, Asistente, Invitado, etc.)."),
+                    orden_web = table.Column<int>(type: "integer", nullable: true, comment: "Orden de visualización del docente en la web (para ordenar por jerarquía).")
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("pk_propuesta_docente", x => x.id);
+                    table.ForeignKey(
+                        name: "fk_propuestas_docentes_docente",
+                        column: x => x.docente_id,
+                        principalSchema: "siga",
+                        principalTable: "docentes",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "fk_propuestas_versiones_docentes",
+                        column: x => x.propuesta_version_id,
+                        principalSchema: "siga",
+                        principalTable: "propuestas_versiones",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Restrict);
+                },
+                comment: "Tabla intermedia que relaciona docentes con propuestas académicas");
+
+            migrationBuilder.CreateTable(
                 name: "inscripciones",
                 schema: "siga",
                 columns: table => new
@@ -558,7 +795,7 @@ namespace SIGA.Persistence.Migrations
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityAlwaysColumn),
                     uuid = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()", comment: "UUID único para identificación universal de la inscripción."),
                     alumno_id = table.Column<int>(type: "integer", nullable: false, comment: "ID del alumno inscrito (FK a alumnos.id)."),
-                    propuesta_id = table.Column<int>(type: "integer", nullable: false, comment: "ID de la propuesta académica (FK a propuestas.id)."),
+                    propuesta_version_id = table.Column<int>(type: "integer", nullable: false, comment: "ID de la propuesta académica (FK a propuestas_versiones.id)."),
                     inscripcion_estado_id = table.Column<int>(type: "integer", nullable: false, comment: "ID del estado de la inscripción (FK a inscripcion_estados.id)."),
                     preinscripcion_id = table.Column<int>(type: "integer", nullable: true, comment: "ID de la preinscripción que originó la inscripción (FK a preinscripciones.id)."),
                     fecha_inscripcion = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, comment: "Fecha y hora de la inscripción."),
@@ -593,10 +830,10 @@ namespace SIGA.Persistence.Migrations
                         principalColumn: "id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "fk_propuestas_inscripciones",
-                        column: x => x.propuesta_id,
+                        name: "fk_propuestas_versiones_inscripciones",
+                        column: x => x.propuesta_version_id,
                         principalSchema: "siga",
-                        principalTable: "propuestas",
+                        principalTable: "propuestas_versiones",
                         principalColumn: "id",
                         onDelete: ReferentialAction.Restrict);
                 },
@@ -1237,22 +1474,22 @@ namespace SIGA.Persistence.Migrations
                 filter: "preinscripcion_id IS NOT NULL");
 
             migrationBuilder.CreateIndex(
-                name: "ix_inscripciones_propuesta",
+                name: "ix_inscripciones_propuesta_version",
                 schema: "siga",
                 table: "inscripciones",
-                column: "propuesta_id");
+                column: "propuesta_version_id");
 
             migrationBuilder.CreateIndex(
-                name: "ix_inscripciones_propuesta_estado",
+                name: "ix_inscripciones_propuesta_version_estado",
                 schema: "siga",
                 table: "inscripciones",
-                columns: new[] { "propuesta_id", "inscripcion_estado_id" });
+                columns: new[] { "propuesta_version_id", "inscripcion_estado_id" });
 
             migrationBuilder.CreateIndex(
-                name: "uk_inscripciones_alumno_propuesta",
+                name: "uk_inscripciones_alumno_propuesta_version",
                 schema: "siga",
                 table: "inscripciones",
-                columns: new[] { "alumno_id", "propuesta_id" },
+                columns: new[] { "alumno_id", "propuesta_version_id" },
                 unique: true,
                 filter: "inscripcion_estado_id = 1");
 
@@ -1380,16 +1617,16 @@ namespace SIGA.Persistence.Migrations
                 filter: "estado_preinscripcion_id = 1");
 
             migrationBuilder.CreateIndex(
-                name: "ix_preinscripciones_propuesta",
+                name: "ix_preinscripciones_propuesta_version",
                 schema: "siga",
                 table: "preinscripciones",
-                column: "propuesta_id");
+                column: "propuesta_version_id");
 
             migrationBuilder.CreateIndex(
-                name: "ix_preinscripciones_propuesta_estado",
+                name: "ix_preinscripciones_propuesta_version_estado",
                 schema: "siga",
                 table: "preinscripciones",
-                columns: new[] { "propuesta_id", "estado_preinscripcion_id" });
+                columns: new[] { "propuesta_version_id", "estado_preinscripcion_id" });
 
             migrationBuilder.CreateIndex(
                 name: "ix_preinscripciones_tipo_documento",
@@ -1398,10 +1635,10 @@ namespace SIGA.Persistence.Migrations
                 column: "tipo_documento_id");
 
             migrationBuilder.CreateIndex(
-                name: "uk_preinscripciones_documento_propuesta",
+                name: "uk_preinscripciones_documento_propuesta_version",
                 schema: "siga",
                 table: "preinscripciones",
-                columns: new[] { "tipo_documento_id", "documento", "propuesta_id" },
+                columns: new[] { "tipo_documento_id", "documento", "propuesta_version_id" },
                 unique: true,
                 filter: "estado_preinscripcion_id IN (1, 2)");
 
@@ -1433,115 +1670,16 @@ namespace SIGA.Persistence.Migrations
                 column: "nombre");
 
             migrationBuilder.CreateIndex(
-                name: "ix_propuestas_cupos_disponibles",
-                schema: "siga",
-                table: "propuestas",
-                column: "cupos_disponibles");
-
-            migrationBuilder.CreateIndex(
-                name: "ix_propuestas_estado",
-                schema: "siga",
-                table: "propuestas",
-                column: "estado_propuesta_id");
-
-            migrationBuilder.CreateIndex(
-                name: "ix_propuestas_estado_sistema",
-                schema: "siga",
-                table: "propuestas",
-                column: "estado",
-                filter: "estado = true");
-
-            migrationBuilder.CreateIndex(
-                name: "ix_propuestas_fecha_fin",
-                schema: "siga",
-                table: "propuestas",
-                column: "fecha_fin");
-
-            migrationBuilder.CreateIndex(
-                name: "ix_propuestas_fecha_inicio",
-                schema: "siga",
-                table: "propuestas",
-                column: "fecha_inicio");
-
-            migrationBuilder.CreateIndex(
-                name: "ix_propuestas_modalidad",
-                schema: "siga",
-                table: "propuestas",
-                column: "modalidad_id");
-
-            migrationBuilder.CreateIndex(
-                name: "ix_propuestas_modalidad_estado",
-                schema: "siga",
-                table: "propuestas",
-                columns: new[] { "modalidad_id", "estado_propuesta_id" });
-
-            migrationBuilder.CreateIndex(
-                name: "ix_propuestas_periodo",
-                schema: "siga",
-                table: "propuestas",
-                column: "periodo_lectivo_id");
-
-            migrationBuilder.CreateIndex(
-                name: "ix_propuestas_permite_inscripciones",
-                schema: "siga",
-                table: "propuestas",
-                column: "permite_inscripciones_web",
-                filter: "permite_inscripciones_web = true");
-
-            migrationBuilder.CreateIndex(
-                name: "ix_propuestas_rango_fechas",
-                schema: "siga",
-                table: "propuestas",
-                columns: new[] { "fecha_inicio", "fecha_fin" });
-
-            migrationBuilder.CreateIndex(
-                name: "ix_propuestas_tipo",
+                name: "IX_propuestas_tipo_propuesta_id",
                 schema: "siga",
                 table: "propuestas",
                 column: "tipo_propuesta_id");
 
             migrationBuilder.CreateIndex(
-                name: "ix_propuestas_tipo_anio",
-                schema: "siga",
-                table: "propuestas",
-                columns: new[] { "tipo_propuesta_id", "anio" });
-
-            migrationBuilder.CreateIndex(
-                name: "ix_propuestas_titulo",
-                schema: "siga",
-                table: "propuestas",
-                column: "titulo");
-
-            migrationBuilder.CreateIndex(
-                name: "ix_propuestas_unidad",
+                name: "IX_propuestas_unidad_id",
                 schema: "siga",
                 table: "propuestas",
                 column: "unidad_id");
-
-            migrationBuilder.CreateIndex(
-                name: "ix_propuestas_unidad_periodo",
-                schema: "siga",
-                table: "propuestas",
-                columns: new[] { "unidad_id", "periodo_lectivo_id" });
-
-            migrationBuilder.CreateIndex(
-                name: "ix_propuestas_usuario",
-                schema: "siga",
-                table: "propuestas",
-                column: "usuario_id");
-
-            migrationBuilder.CreateIndex(
-                name: "ix_propuestas_web_flags",
-                schema: "siga",
-                table: "propuestas",
-                columns: new[] { "web_visible", "permite_inscripciones_web" });
-
-            migrationBuilder.CreateIndex(
-                name: "ix_propuestas_web_visible",
-                schema: "siga",
-                table: "propuestas",
-                column: "web_visible",
-                filter: "web_visible = true");
 
             migrationBuilder.CreateIndex(
                 name: "ix_propuestas_docentes_docente",
@@ -1550,23 +1688,65 @@ namespace SIGA.Persistence.Migrations
                 column: "docente_id");
 
             migrationBuilder.CreateIndex(
-                name: "ix_propuestas_docentes_orden_web",
+                name: "ix_propuestas_versiones_docentes_orden_web",
                 schema: "siga",
                 table: "propuestas_docentes",
-                columns: new[] { "propuesta_id", "orden_web" });
+                columns: new[] { "propuesta_version_id", "orden_web" });
 
             migrationBuilder.CreateIndex(
-                name: "ix_propuestas_docentes_propuesta",
+                name: "ix_propuestas_versiones_docentes_propuesta",
                 schema: "siga",
                 table: "propuestas_docentes",
+                column: "propuesta_version_id");
+
+            migrationBuilder.CreateIndex(
+                name: "uk_propuestas_versiones_docentes_unique",
+                schema: "siga",
+                table: "propuestas_docentes",
+                columns: new[] { "propuesta_version_id", "docente_id" },
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_propuestas_versiones_estado_propuesta_id",
+                schema: "siga",
+                table: "propuestas_versiones",
+                column: "estado_propuesta_id");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_propuestas_versiones_modalidad_id",
+                schema: "siga",
+                table: "propuestas_versiones",
+                column: "modalidad_id");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_propuestas_versiones_ModalidadId1",
+                schema: "siga",
+                table: "propuestas_versiones",
+                column: "ModalidadId1");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_propuestas_versiones_periodo_lectivo_id",
+                schema: "siga",
+                table: "propuestas_versiones",
+                column: "periodo_lectivo_id");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_propuestas_versiones_PeriodoLectivoId1",
+                schema: "siga",
+                table: "propuestas_versiones",
+                column: "PeriodoLectivoId1");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_propuestas_versiones_propuesta_id",
+                schema: "siga",
+                table: "propuestas_versiones",
                 column: "propuesta_id");
 
             migrationBuilder.CreateIndex(
-                name: "uk_propuestas_docentes_unique",
+                name: "IX_propuestas_versiones_PropuestaEstadoId",
                 schema: "siga",
-                table: "propuestas_docentes",
-                columns: new[] { "propuesta_id", "docente_id" },
-                unique: true);
+                table: "propuestas_versiones",
+                column: "PropuestaEstadoId");
 
             migrationBuilder.CreateIndex(
                 name: "ix_propuestas_web_estado",
@@ -1619,6 +1799,19 @@ namespace SIGA.Persistence.Migrations
                 table: "propuestas_web",
                 column: "slug",
                 unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "RoleNameIndex",
+                schema: "siga",
+                table: "roles",
+                column: "NormalizedName",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_roles_claims_RoleId",
+                schema: "siga",
+                table: "roles_claims",
+                column: "RoleId");
 
             migrationBuilder.CreateIndex(
                 name: "ix_temarios_propuesta",
@@ -1711,6 +1904,43 @@ namespace SIGA.Persistence.Migrations
                 table: "unidades",
                 column: "siglas",
                 unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "EmailIndex",
+                schema: "siga",
+                table: "usuarios",
+                column: "NormalizedEmail");
+
+            migrationBuilder.CreateIndex(
+                name: "UserNameIndex",
+                schema: "siga",
+                table: "usuarios",
+                column: "NormalizedUserName",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_usuarios_claims_UserId",
+                schema: "siga",
+                table: "usuarios_claims",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_usuarios_logins_UserId",
+                schema: "siga",
+                table: "usuarios_logins",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_usuarios_roles_RoleId",
+                schema: "siga",
+                table: "usuarios_roles",
+                column: "RoleId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_usuarios_unidades_UnidadId",
+                schema: "siga",
+                table: "usuarios_unidades",
+                column: "UnidadId");
         }
 
         /// <inheritdoc />
@@ -1733,7 +1963,31 @@ namespace SIGA.Persistence.Migrations
                 schema: "siga");
 
             migrationBuilder.DropTable(
+                name: "roles_claims",
+                schema: "siga");
+
+            migrationBuilder.DropTable(
                 name: "temarios",
+                schema: "siga");
+
+            migrationBuilder.DropTable(
+                name: "usuarios_claims",
+                schema: "siga");
+
+            migrationBuilder.DropTable(
+                name: "usuarios_logins",
+                schema: "siga");
+
+            migrationBuilder.DropTable(
+                name: "usuarios_roles",
+                schema: "siga");
+
+            migrationBuilder.DropTable(
+                name: "usuarios_tokens",
+                schema: "siga");
+
+            migrationBuilder.DropTable(
+                name: "usuarios_unidades",
                 schema: "siga");
 
             migrationBuilder.DropTable(
@@ -1746,6 +2000,14 @@ namespace SIGA.Persistence.Migrations
 
             migrationBuilder.DropTable(
                 name: "docentes",
+                schema: "siga");
+
+            migrationBuilder.DropTable(
+                name: "roles",
+                schema: "siga");
+
+            migrationBuilder.DropTable(
+                name: "usuarios",
                 schema: "siga");
 
             migrationBuilder.DropTable(
@@ -1765,7 +2027,7 @@ namespace SIGA.Persistence.Migrations
                 schema: "siga");
 
             migrationBuilder.DropTable(
-                name: "propuestas",
+                name: "propuestas_versiones",
                 schema: "siga");
 
             migrationBuilder.DropTable(
@@ -1777,15 +2039,19 @@ namespace SIGA.Persistence.Migrations
                 schema: "siga");
 
             migrationBuilder.DropTable(
-                name: "propuesta_estados",
-                schema: "siga");
-
-            migrationBuilder.DropTable(
                 name: "modalidades",
                 schema: "siga");
 
             migrationBuilder.DropTable(
                 name: "periodos_lectivos",
+                schema: "siga");
+
+            migrationBuilder.DropTable(
+                name: "propuesta_estados",
+                schema: "siga");
+
+            migrationBuilder.DropTable(
+                name: "propuestas",
                 schema: "siga");
 
             migrationBuilder.DropTable(

@@ -1,4 +1,4 @@
-﻿using SIGA.Domain.Entities.Catalog.Static;
+using SIGA.Domain.Entities.Catalog.Static;
 using SIGA.Domain.Exceptions;
 
 namespace SIGA.Domain.Entities.Core;
@@ -63,8 +63,8 @@ public partial class Certificado
             Version = 1,
             EsVersionActual = true,
             HashSeguridad = "HashSeguridad",
-            TituloCertificado = inscripcion.Propuesta.Titulo,
-            HorasCertificadas = inscripcion.Propuesta.CantidadHoras,
+            TituloCertificado = inscripcion.PropuestaVersion.Propuesta.Titulo,
+            HorasCertificadas = inscripcion.PropuestaVersion.Propuesta.CantidadHoras,
             FechaInicio = fechaInicio,
             FechaFinalizacion = fechaFin,
             FechaEmision = DateOnly.FromDateTime(DateTime.UtcNow),

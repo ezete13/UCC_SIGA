@@ -17,6 +17,17 @@ public static class DependencyInjection
             options.UseNpgsql(configuration.GetConnectionString("DefaultConnection"));
         });
 
+        services.AddIdentityCore<Domain.Entities.Security.ApplicationUser>(options =>
+        {
+            options.Password.RequireDigit = true;
+            options.Password.RequiredLength = 8;
+            options.Password.RequireNonAlphanumeric = false;
+            options.Password.RequireUppercase = true;
+            options.Password.RequireLowercase = true;
+        })
+        .AddRoles<Domain.Entities.Security.ApplicationRole>()
+        .AddEntityFrameworkStores<ApplicationDbContext>();
+
         return services;
     }
 }

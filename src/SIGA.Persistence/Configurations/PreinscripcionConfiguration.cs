@@ -54,11 +54,11 @@ public class PreinscripcionConfiguration : IEntityTypeConfiguration<Preinscripci
             .HasComment("ID del alumno generado al aprobar la preinscripción (FK a alumnos.id).");
 
         builder
-            .Property(e => e.PropuestaId)
-            .HasColumnName("propuesta_id")
+            .Property(e => e.PropuestaVersionId)
+            .HasColumnName("propuesta_version_id")
             .IsRequired()
             .HasColumnType("integer")
-            .HasComment("ID de la propuesta académica solicitada (FK a propuestas.id).");
+            .HasComment("ID de la propuesta académica solicitada (FK a propuestas_versiones.id).");
 
         builder
             .Property(e => e.EstadoPreinscripcionId)
@@ -148,10 +148,10 @@ public class PreinscripcionConfiguration : IEntityTypeConfiguration<Preinscripci
             {
                 e.TipoDocumentoId,
                 e.Documento,
-                e.PropuestaId,
+                e.PropuestaVersionId,
             })
             .IsUnique()
-            .HasDatabaseName("uk_preinscripciones_documento_propuesta")
+            .HasDatabaseName("uk_preinscripciones_documento_propuesta_version")
             .HasFilter("estado_preinscripcion_id IN (1, 2)"); // En Espera (1) y Aprobada (2)
 
         // Índices para búsqueda por persona
@@ -168,7 +168,7 @@ public class PreinscripcionConfiguration : IEntityTypeConfiguration<Preinscripci
         builder.HasIndex(e => e.Documento).HasDatabaseName("ix_preinscripciones_documento");
 
         // Índices para FK
-        builder.HasIndex(e => e.PropuestaId).HasDatabaseName("ix_preinscripciones_propuesta");
+        builder.HasIndex(e => e.PropuestaVersionId).HasDatabaseName("ix_preinscripciones_propuesta_version");
 
         builder
             .HasIndex(e => e.EstadoPreinscripcionId)
@@ -185,8 +185,8 @@ public class PreinscripcionConfiguration : IEntityTypeConfiguration<Preinscripci
 
         // Índices compuestos para filtrado común
         builder
-            .HasIndex(e => new { e.PropuestaId, e.EstadoPreinscripcionId })
-            .HasDatabaseName("ix_preinscripciones_propuesta_estado");
+            .HasIndex(e => new { e.PropuestaVersionId, e.EstadoPreinscripcionId })
+            .HasDatabaseName("ix_preinscripciones_propuesta_version_estado");
 
         builder
             .HasIndex(e => new { e.EstadoPreinscripcionId, e.CreadoEn })
@@ -201,13 +201,13 @@ public class PreinscripcionConfiguration : IEntityTypeConfiguration<Preinscripci
 
     private static void ConfigureRelationships(EntityTypeBuilder<Preinscripcion> builder)
     {
-        // Relación con Propuesta
+        // Relación con PropuestaVersion
         builder
-            .HasOne(e => e.Propuesta)
+            .HasOne(e => e.PropuestaVersion)
             .WithMany(p => p.Preinscripciones)
-            .HasForeignKey(e => e.PropuestaId)
+            .HasForeignKey(e => e.PropuestaVersionId)
             .OnDelete(DeleteBehavior.Restrict)
-            .HasConstraintName("fk_preinscripciones_propuesta");
+            .HasConstraintName("fk_preinscripciones_propuesta_version");
 
         // Relación con PreinscripcionEstado
         builder

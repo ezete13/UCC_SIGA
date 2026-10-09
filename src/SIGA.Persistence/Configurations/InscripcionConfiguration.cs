@@ -54,11 +54,11 @@ public class InscripcionConfiguration : IEntityTypeConfiguration<Inscripcion>
             .HasComment("ID del alumno inscrito (FK a alumnos.id).");
 
         builder
-            .Property(e => e.PropuestaId)
-            .HasColumnName("propuesta_id")
+            .Property(e => e.PropuestaVersionId)
+            .HasColumnName("propuesta_version_id")
             .IsRequired()
             .HasColumnType("integer")
-            .HasComment("ID de la propuesta académica (FK a propuestas.id).");
+            .HasComment("ID de la propuesta académica (FK a propuestas_versiones.id).");
 
         builder
             .Property(e => e.InscripcionEstadoId)
@@ -129,15 +129,15 @@ public class InscripcionConfiguration : IEntityTypeConfiguration<Inscripcion>
 
         // Índice único compuesto para evitar duplicados de alumno en misma propuesta (solo activas)
         builder
-            .HasIndex(e => new { e.AlumnoId, e.PropuestaId })
+            .HasIndex(e => new { e.AlumnoId, e.PropuestaVersionId })
             .IsUnique()
-            .HasDatabaseName("uk_inscripciones_alumno_propuesta")
+            .HasDatabaseName("uk_inscripciones_alumno_propuesta_version")
             .HasFilter("inscripcion_estado_id = 1"); // Asumiendo que 1 = Activa
 
         // Índices para búsquedas frecuentes
         builder.HasIndex(e => e.AlumnoId).HasDatabaseName("ix_inscripciones_alumno");
 
-        builder.HasIndex(e => e.PropuestaId).HasDatabaseName("ix_inscripciones_propuesta");
+        builder.HasIndex(e => e.PropuestaVersionId).HasDatabaseName("ix_inscripciones_propuesta_version");
 
         builder.HasIndex(e => e.InscripcionEstadoId).HasDatabaseName("ix_inscripciones_estado");
 
@@ -152,8 +152,8 @@ public class InscripcionConfiguration : IEntityTypeConfiguration<Inscripcion>
             .HasDatabaseName("ix_inscripciones_alumno_estado");
 
         builder
-            .HasIndex(e => new { e.PropuestaId, e.InscripcionEstadoId })
-            .HasDatabaseName("ix_inscripciones_propuesta_estado");
+            .HasIndex(e => new { e.PropuestaVersionId, e.InscripcionEstadoId })
+            .HasDatabaseName("ix_inscripciones_propuesta_version_estado");
 
         builder
             .HasIndex(e => new { e.FechaInscripcion, e.InscripcionEstadoId })
@@ -186,13 +186,13 @@ public class InscripcionConfiguration : IEntityTypeConfiguration<Inscripcion>
             .OnDelete(DeleteBehavior.Restrict)
             .HasConstraintName("fk_inscripciones_alumno");
 
-        // Relación con Propuesta
+        // Relación con PropuestaVersion
         builder
-            .HasOne(e => e.Propuesta)
+            .HasOne(e => e.PropuestaVersion)
             .WithMany(p => p.Inscripciones)
-            .HasForeignKey(e => e.PropuestaId)
+            .HasForeignKey(e => e.PropuestaVersionId)
             .OnDelete(DeleteBehavior.Restrict)
-            .HasConstraintName("fk_inscripciones_propuesta");
+            .HasConstraintName("fk_inscripciones_propuesta_version");
 
         // Relación con InscripcionEstado
         builder

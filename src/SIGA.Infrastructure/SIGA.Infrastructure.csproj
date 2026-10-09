@@ -9,6 +9,8 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="CsvHelper" Version="33.1.0" />
+    <PackageReference Include="PuppeteerSharp" Version="25.12.0" />
+    <PackageReference Include="Scriban" Version="7.5.0" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Certificados\" />

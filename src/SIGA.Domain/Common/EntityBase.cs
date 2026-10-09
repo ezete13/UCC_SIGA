@@ -4,11 +4,11 @@ public partial class EntityBase
 {
     public int Id { get; set; }
 
-    public required string Codigo { get; set; }
+    public string Codigo { get; set; } = null!;
 
-    public required string Nombre { get; set; }
+    public string Nombre { get; set; } = null!;
 
-    public required string? Descripcion { get; set; }
+    public string? Descripcion { get; set; } = null!;
 
     public bool Activo { get; set; } = true;
 }
